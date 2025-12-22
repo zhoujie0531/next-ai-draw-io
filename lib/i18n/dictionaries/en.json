@@ -27,7 +27,8 @@
         "azure": "Azure OpenAI",
         "openrouter": "OpenRouter",
         "deepseek": "DeepSeek",
-        "siliconflow": "SiliconFlow"
+        "siliconflow": "SiliconFlow",
+        "edgeone": "EdgeOne Pages"
     },
     "chat": {
         "placeholder": "Describe your diagram or upload a file...",

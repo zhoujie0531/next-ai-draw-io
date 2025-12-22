@@ -143,31 +143,6 @@ function createCachedStreamResponse(xml: string): Response {
 
 // Inner handler function
 async function handleChatRequest(req: Request): Promise<Response> {
-    // Check if Edge AI provider is requested (from header or env)
-    // If so, forward to edge function at /api/edgeai/chat
-    const clientProvider = req.headers.get("x-ai-provider")
-    const serverProvider = process.env.AI_PROVIDER
-    const isEdgeAI =
-        clientProvider === "edgeai" ||
-        (!clientProvider && serverProvider === "edgeai")
-
-    if (isEdgeAI) {
-        // Redirect to edge function - let the client/edge handle it directly
-        // Use SITE_URL env var for correct public URL
-        const siteUrl = process.env.SITE_URL
-        if (!siteUrl) {
-            return Response.json(
-                {
-                    error: "SITE_URL environment variable is required for Edge AI",
-                },
-                { status: 500 },
-            )
-        }
-        const redirectUrl = `${siteUrl.replace(/\/$/, "")}/api/edgeai/chat`
-
-        return Response.redirect(redirectUrl, 307)
-    }
-
     // Check for access code
     const accessCodes =
         process.env.ACCESS_CODE_LIST?.split(",")

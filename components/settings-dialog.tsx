@@ -208,14 +208,23 @@ export function SettingsDialog({
                                     {dict.settings.provider}
                                 </Label>
                                 <Select
-                                    value={provider || "default"}
+                                    value={
+                                        provider === "edgeai"
+                                            ? "edgeone"
+                                            : provider || "default"
+                                    }
                                     onValueChange={(value) => {
-                                        const actualValue =
-                                            value === "default" ? "" : value
-                                        setProvider(actualValue)
+                                        // Map edgeone UI value to edgeai storage value
+                                        const storageValue =
+                                            value === "default"
+                                                ? ""
+                                                : value === "edgeone"
+                                                  ? "edgeai"
+                                                  : value
+                                        setProvider(storageValue)
                                         localStorage.setItem(
                                             STORAGE_AI_PROVIDER_KEY,
-                                            actualValue,
+                                            storageValue,
                                         )
                                     }}
                                 >
@@ -251,133 +260,142 @@ export function SettingsDialog({
                                         <SelectItem value="siliconflow">
                                             {dict.providers.siliconflow}
                                         </SelectItem>
+                                        <SelectItem value="edgeone">
+                                            {dict.providers.edgeone}
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
-                            {provider && provider !== "default" && (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="ai-model">
-                                            {dict.settings.modelId}
-                                        </Label>
-                                        <Input
-                                            id="ai-model"
-                                            value={modelId}
-                                            onChange={(e) => {
-                                                setModelId(e.target.value)
-                                                localStorage.setItem(
-                                                    STORAGE_AI_MODEL_KEY,
-                                                    e.target.value,
-                                                )
-                                            }}
-                                            placeholder={
-                                                provider === "openai"
-                                                    ? "e.g., gpt-4o"
-                                                    : provider === "anthropic"
-                                                      ? "e.g., claude-sonnet-4-5"
-                                                      : provider === "google"
-                                                        ? "e.g., gemini-2.0-flash-exp"
+                            {provider &&
+                                provider !== "default" &&
+                                provider !== "edgeai" && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ai-model">
+                                                {dict.settings.modelId}
+                                            </Label>
+                                            <Input
+                                                id="ai-model"
+                                                value={modelId}
+                                                onChange={(e) => {
+                                                    setModelId(e.target.value)
+                                                    localStorage.setItem(
+                                                        STORAGE_AI_MODEL_KEY,
+                                                        e.target.value,
+                                                    )
+                                                }}
+                                                placeholder={
+                                                    provider === "openai"
+                                                        ? "e.g., gpt-4o"
                                                         : provider ===
-                                                            "deepseek"
-                                                          ? "e.g., deepseek-chat"
-                                                          : dict.settings
-                                                                .modelId
-                                            }
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="ai-api-key">
-                                            {dict.settings.apiKey}
-                                        </Label>
-                                        <Input
-                                            id="ai-api-key"
-                                            type="password"
-                                            value={apiKey}
-                                            onChange={(e) => {
-                                                setApiKey(e.target.value)
-                                                localStorage.setItem(
-                                                    STORAGE_AI_API_KEY_KEY,
-                                                    e.target.value,
-                                                )
-                                            }}
-                                            placeholder={
-                                                dict.settings.apiKeyPlaceholder
-                                            }
-                                            autoComplete="off"
-                                        />
-                                        <p className="text-[0.8rem] text-muted-foreground">
-                                            {dict.settings.overrides}{" "}
-                                            {provider === "openai"
-                                                ? "OPENAI_API_KEY"
-                                                : provider === "anthropic"
-                                                  ? "ANTHROPIC_API_KEY"
-                                                  : provider === "google"
-                                                    ? "GOOGLE_GENERATIVE_AI_API_KEY"
-                                                    : provider === "azure"
-                                                      ? "AZURE_API_KEY"
-                                                      : provider ===
-                                                          "openrouter"
-                                                        ? "OPENROUTER_API_KEY"
-                                                        : provider ===
-                                                            "deepseek"
-                                                          ? "DEEPSEEK_API_KEY"
+                                                            "anthropic"
+                                                          ? "e.g., claude-sonnet-4-5"
                                                           : provider ===
-                                                              "siliconflow"
-                                                            ? "SILICONFLOW_API_KEY"
-                                                            : "server API key"}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="ai-base-url">
-                                            {dict.settings.baseUrl}
-                                        </Label>
-                                        <Input
-                                            id="ai-base-url"
-                                            value={baseUrl}
-                                            onChange={(e) => {
-                                                setBaseUrl(e.target.value)
-                                                localStorage.setItem(
-                                                    STORAGE_AI_BASE_URL_KEY,
-                                                    e.target.value,
+                                                              "google"
+                                                            ? "e.g., gemini-2.0-flash-exp"
+                                                            : provider ===
+                                                                "deepseek"
+                                                              ? "e.g., deepseek-chat"
+                                                              : dict.settings
+                                                                    .modelId
+                                                }
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ai-api-key">
+                                                {dict.settings.apiKey}
+                                            </Label>
+                                            <Input
+                                                id="ai-api-key"
+                                                type="password"
+                                                value={apiKey}
+                                                onChange={(e) => {
+                                                    setApiKey(e.target.value)
+                                                    localStorage.setItem(
+                                                        STORAGE_AI_API_KEY_KEY,
+                                                        e.target.value,
+                                                    )
+                                                }}
+                                                placeholder={
+                                                    dict.settings
+                                                        .apiKeyPlaceholder
+                                                }
+                                                autoComplete="off"
+                                            />
+                                            <p className="text-[0.8rem] text-muted-foreground">
+                                                {dict.settings.overrides}{" "}
+                                                {provider === "openai"
+                                                    ? "OPENAI_API_KEY"
+                                                    : provider === "anthropic"
+                                                      ? "ANTHROPIC_API_KEY"
+                                                      : provider === "google"
+                                                        ? "GOOGLE_GENERATIVE_AI_API_KEY"
+                                                        : provider === "azure"
+                                                          ? "AZURE_API_KEY"
+                                                          : provider ===
+                                                              "openrouter"
+                                                            ? "OPENROUTER_API_KEY"
+                                                            : provider ===
+                                                                "deepseek"
+                                                              ? "DEEPSEEK_API_KEY"
+                                                              : provider ===
+                                                                  "siliconflow"
+                                                                ? "SILICONFLOW_API_KEY"
+                                                                : "server API key"}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ai-base-url">
+                                                {dict.settings.baseUrl}
+                                            </Label>
+                                            <Input
+                                                id="ai-base-url"
+                                                value={baseUrl}
+                                                onChange={(e) => {
+                                                    setBaseUrl(e.target.value)
+                                                    localStorage.setItem(
+                                                        STORAGE_AI_BASE_URL_KEY,
+                                                        e.target.value,
+                                                    )
+                                                }}
+                                                placeholder={
+                                                    provider === "anthropic"
+                                                        ? "https://api.anthropic.com/v1"
+                                                        : provider ===
+                                                            "siliconflow"
+                                                          ? "https://api.siliconflow.com/v1"
+                                                          : dict.settings
+                                                                .customEndpoint
+                                                }
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full"
+                                            onClick={() => {
+                                                localStorage.removeItem(
+                                                    STORAGE_AI_PROVIDER_KEY,
                                                 )
+                                                localStorage.removeItem(
+                                                    STORAGE_AI_BASE_URL_KEY,
+                                                )
+                                                localStorage.removeItem(
+                                                    STORAGE_AI_API_KEY_KEY,
+                                                )
+                                                localStorage.removeItem(
+                                                    STORAGE_AI_MODEL_KEY,
+                                                )
+                                                setProvider("")
+                                                setBaseUrl("")
+                                                setApiKey("")
+                                                setModelId("")
                                             }}
-                                            placeholder={
-                                                provider === "anthropic"
-                                                    ? "https://api.anthropic.com/v1"
-                                                    : provider === "siliconflow"
-                                                      ? "https://api.siliconflow.com/v1"
-                                                      : dict.settings
-                                                            .customEndpoint
-                                            }
-                                        />
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full"
-                                        onClick={() => {
-                                            localStorage.removeItem(
-                                                STORAGE_AI_PROVIDER_KEY,
-                                            )
-                                            localStorage.removeItem(
-                                                STORAGE_AI_BASE_URL_KEY,
-                                            )
-                                            localStorage.removeItem(
-                                                STORAGE_AI_API_KEY_KEY,
-                                            )
-                                            localStorage.removeItem(
-                                                STORAGE_AI_MODEL_KEY,
-                                            )
-                                            setProvider("")
-                                            setBaseUrl("")
-                                            setApiKey("")
-                                            setModelId("")
-                                        }}
-                                    >
-                                        {dict.settings.clearSettings}
-                                    </Button>
-                                </>
-                            )}
+                                        >
+                                            {dict.settings.clearSettings}
+                                        </Button>
+                                    </>
+                                )}
                         </div>
                     </div>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
+import { DefaultChatTransport, type UIMessage } from "ai"
 import {
     AlertTriangle,
     MessageSquarePlus,
@@ -30,6 +30,27 @@ import { useQuotaManager } from "@/lib/use-quota-manager"
 import { formatXML, isMxCellXmlComplete, wrapWithMxFile } from "@/lib/utils"
 import { ChatMessageDisplay } from "./chat-message-display"
 import LanguageToggle from "./language-toggle"
+
+// Custom transport that dynamically selects API based on provider
+class DynamicChatTransport extends DefaultChatTransport<UIMessage> {
+    constructor() {
+        super({ api: "/api/chat" })
+    }
+
+    sendMessages(
+        options: Parameters<DefaultChatTransport<UIMessage>["sendMessages"]>[0],
+    ) {
+        // Check current provider at send time
+        const config = getAIConfig()
+        if (config.aiProvider === "edgeai") {
+            // Override API for EdgeOne Pages
+            this.api = "/api/edgeai/chat"
+        } else {
+            this.api = "/api/chat"
+        }
+        return super.sendMessages(options)
+    }
+}
 
 // localStorage keys for persistence
 const STORAGE_MESSAGES_KEY = "next-ai-draw-io-messages"
@@ -235,9 +256,7 @@ export default function ChatPanel({
         error,
         setMessages,
     } = useChat({
-        transport: new DefaultChatTransport({
-            api: "/api/chat",
-        }),
+        transport: new DynamicChatTransport(),
         async onToolCall({ toolCall }) {
             if (DEBUG) {
                 console.log(
