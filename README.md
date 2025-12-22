@@ -219,7 +219,7 @@ EdgeOne Pages offers **free [Edge AI](https://pages.edgeone.ai/document/edge-ai)
 **Environment Variables:**
 - `AI_PROVIDER`: `edgeai`
 - `AI_MODEL`: `@tx/deepseek-ai/deepseek-v3-0324` or `@tx/deepseek-ai/deepseek-r1-0528`
-- `SITE_URL`: Your deployment URL (find it in project details → "Domain" tab)
+- `SITE_URL`: Your deployment URL (after first deployment, find it in project details → "Domain" tab)
 
 ### Deploy to Vercel
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.
