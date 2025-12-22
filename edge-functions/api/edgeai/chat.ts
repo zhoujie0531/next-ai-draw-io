@@ -11,7 +11,7 @@
  * Documentation: https://pages.edgeone.ai/document/edge-ai
  */
 
-import { getEdgeAISystemPrompt } from "../system-prompts"
+import { getEdgeAISystemPrompt } from "../../system-prompts"
 
 // EdgeOne Pages global AI object
 declare const AI: {
@@ -67,20 +67,8 @@ export async function onRequestOptions(): Promise<Response> {
 export async function onRequestPost({
     request,
     env,
-    next,
 }: EdgeFunctionContext): Promise<Response> {
-    // Remove encoding header to avoid compression issues with streaming
     request.headers.delete("accept-encoding")
-
-    // When deployed on EdgeOne Pages, default to using Edge AI
-    // Can be overridden by X-AI-Provider header or AI_PROVIDER env var
-    const aiProvider =
-        request.headers.get("X-AI-Provider") || env.AI_PROVIDER || "edgeai"
-
-    if (aiProvider !== "edgeai") {
-        // Not an Edge AI request - pass through to Next.js
-        return next()
-    }
 
     const corsHeaders: Record<string, string> = {
         "Access-Control-Allow-Origin": "*",
@@ -90,8 +78,9 @@ export async function onRequestPost({
     }
 
     try {
-        // Parse request body
-        const body = (await request.json()) as {
+        // Read body as text first, then parse (avoids Request reuse issues)
+        const bodyText = await request.text()
+        const body = JSON.parse(bodyText) as {
             messages: UIMessage[]
             xml?: string
             previousXml?: string
@@ -134,7 +123,8 @@ export async function onRequestPost({
             headers: {
                 ...corsHeaders,
                 "Content-Type": "text/event-stream; charset=utf-8",
-                "Cache-Control": "no-cache",
+                "Content-Encoding": "identity", // Disable compression for streaming
+                "Cache-Control": "no-cache, no-transform",
                 Connection: "keep-alive",
                 "x-vercel-ai-ui-message-stream": "v1",
             },
