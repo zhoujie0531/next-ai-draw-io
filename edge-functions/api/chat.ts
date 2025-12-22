@@ -69,6 +69,9 @@ export async function onRequestPost({
     env,
     next,
 }: EdgeFunctionContext): Promise<Response> {
+    // Remove encoding header to avoid compression issues with streaming
+    request.headers.delete("accept-encoding")
+
     // When deployed on EdgeOne Pages, default to using Edge AI
     // Can be overridden by X-AI-Provider header or AI_PROVIDER env var
     const aiProvider =
