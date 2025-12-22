@@ -124,16 +124,6 @@ export async function onRequestPost({
         })
         console.log(`[Edge AI] AI.chatCompletions returned ${Date.now()}`)
 
-        // DEBUG: Test if raw stream works - uncomment to test
-        // return new Response(aiResponse, {
-        //     headers: {
-        //         ...corsHeaders,
-        //         "Content-Type": "text/event-stream; charset=utf-8",
-        //         "Cache-Control": "no-cache",
-        //         "Connection": "keep-alive",
-        //     },
-        // })
-
         // Transform to AI SDK UI stream format
         const transformedStream = transformToUIStream(aiResponse)
 

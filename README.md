@@ -210,6 +210,17 @@ npm run dev
 
 ## Deployment
 
+### Deploy to EdgeOne Pages
+
+[![Deploy to EdgeOne Pages](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2FDayuanJiang%2Fnext-ai-draw-io)
+
+EdgeOne Pages offers **free [Edge AI](https://pages.edgeone.ai/document/edge-ai) quota** (DeepSeek-V3: 50 req/day, DeepSeek-R1: 20 req/day). No API keys required.
+
+**Environment Variables:**
+- `AI_PROVIDER`: `edgeai`
+- `AI_MODEL`: `@tx/deepseek-ai/deepseek-v3-0324` or `@tx/deepseek-ai/deepseek-r1-0528`
+
+### Deploy to Vercel
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
