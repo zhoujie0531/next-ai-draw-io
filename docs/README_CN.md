@@ -213,9 +213,9 @@ npm run dev
 直接点击此按钮一键部署：
 [![Deploy to EdgeOne Pages](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?repository-url=https%3A%2F%2Fgithub.com%2FDayuanJiang%2Fnext-ai-draw-io)
 
-查看[腾讯云EdgeOne Pages文档](https://pages.edgeone.ai/zh/document/deployment-overview)了解更多详情：
+查看[腾讯云EdgeOne Pages文档](https://pages.edgeone.ai/zh/document/deployment-overview)了解更多详情。
 
-同时，通过腾讯云EdgeOne Pages部署，也会获得[每日免费的DeepSeek模型免费额度](https://pages.edgeone.ai/zh/document/edge-ai)。
+同时，通过腾讯云EdgeOne Pages部署，也会获得[每日免费的DeepSeek模型额度](https://pages.edgeone.ai/zh/document/edge-ai)。
 
 ### 部署到Vercel
 

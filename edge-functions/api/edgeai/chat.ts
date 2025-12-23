@@ -4,9 +4,6 @@
  * This function intercepts /api/chat requests when deployed to EdgeOne Pages
  * and uses the built-in Edge AI service (DeepSeek models).
  *
- * Supported models:
- * - @tx/deepseek-ai/deepseek-v3-0324 (50 requests/day)
- * - @tx/deepseek-ai/deepseek-r1-0528 (20 requests/day)
  *
  * Documentation: https://pages.edgeone.ai/document/edge-ai
  */

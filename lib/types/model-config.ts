@@ -204,11 +204,7 @@ export const SUGGESTED_MODELS: Record<ProviderName, string[]> = {
         "anthropic/claude-3-5-sonnet",
         "google/gemini-2.0-flash",
     ],
-    edgeone: [
-        "@tx/deepseek-ai/deepseek-v3",
-        "@tx/deepseek-ai/deepseek-v3-0324",
-        "@tx/deepseek-ai/deepseek-r1-0528",
-    ],
+    edgeone: ["@tx/deepseek-ai/deepseek-v3"],
 }
 
 // Helper to generate UUID
