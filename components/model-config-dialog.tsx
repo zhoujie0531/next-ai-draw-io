@@ -638,15 +638,6 @@ export function ModelConfigDialog({
                                                 {selectedProvider.provider ===
                                                 "edgeone" ? (
                                                     <div className="space-y-3">
-                                                        {/* EdgeOne Pages - No API Key needed */}
-                                                        <p className="text-xs text-muted-foreground">
-                                                            Free Edge AI quota
-                                                            when deployed to
-                                                            EdgeOne Pages. No
-                                                            API key required.
-                                                            (DeepSeek-V3:
-                                                            50/day, R1: 20/day)
-                                                        </p>
                                                         {/* Test Button */}
                                                         <div className="flex items-center gap-2">
                                                             <Button
@@ -678,10 +669,16 @@ export function ModelConfigDialog({
                                                                   "success" ? (
                                                                     <>
                                                                         <Check className="h-4 w-4 mr-1.5" />
-                                                                        Verified
+                                                                        {
+                                                                            dict
+                                                                                .modelConfig
+                                                                                .verified
+                                                                        }
                                                                     </>
                                                                 ) : (
-                                                                    "Test"
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .test
                                                                 )}
                                                             </Button>
                                                             {validationStatus ===
