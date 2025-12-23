@@ -1,7 +1,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport, type UIMessage } from "ai"
+import { DefaultChatTransport } from "ai"
 import {
     AlertTriangle,
     MessageSquarePlus,
@@ -12,7 +12,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import type React from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { FaGithub } from "react-icons/fa"
 import { Toaster, toast } from "sonner"
@@ -29,7 +29,6 @@ import {
 import { useDiagram } from "@/contexts/diagram-context"
 import { useDictionary } from "@/hooks/use-dictionary"
 import { getSelectedAIConfig, useModelConfig } from "@/hooks/use-model-config"
-import { getAIConfig } from "@/lib/ai-config"
 import { getApiEndpoint } from "@/lib/base-path"
 import { findCachedResponse } from "@/lib/cached-responses"
 import { isPdfFile, isTextFile } from "@/lib/pdf-utils"
@@ -37,27 +36,6 @@ import { type FileData, useFileProcessor } from "@/lib/use-file-processor"
 import { useQuotaManager } from "@/lib/use-quota-manager"
 import { formatXML, isMxCellXmlComplete, wrapWithMxFile } from "@/lib/utils"
 import { ChatMessageDisplay } from "./chat-message-display"
-
-// Custom transport that dynamically selects API based on provider
-class DynamicChatTransport extends DefaultChatTransport<UIMessage> {
-    constructor() {
-        super({ api: "/api/chat" })
-    }
-
-    sendMessages(
-        options: Parameters<DefaultChatTransport<UIMessage>["sendMessages"]>[0],
-    ) {
-        // Check current provider at send time
-        const config = getAIConfig()
-        if (config.aiProvider === "edgeai") {
-            // Override API for EdgeOne Pages
-            this.api = "/api/edgeai/chat"
-        } else {
-            this.api = "/api/chat"
-        }
-        return super.sendMessages(options)
-    }
-}
 
 // localStorage keys for persistence
 const STORAGE_MESSAGES_KEY = "next-ai-draw-io-messages"
@@ -178,6 +156,16 @@ export default function ChatPanel({
 
     // Model configuration hook
     const modelConfig = useModelConfig()
+
+    // Dynamic transport based on current provider
+    const chatTransport = useMemo(() => {
+        const config = getSelectedAIConfig()
+        const api =
+            config.aiProvider === "edgeone"
+                ? getApiEndpoint("/api/edgeai/chat")
+                : getApiEndpoint("/api/chat")
+        return new DefaultChatTransport({ api })
+    }, [modelConfig.selectedModelId])
     const [input, setInput] = useState("")
     const [dailyRequestLimit, setDailyRequestLimit] = useState(0)
     const [dailyTokenLimit, setDailyTokenLimit] = useState(0)
@@ -265,7 +253,7 @@ export default function ChatPanel({
         error,
         setMessages,
     } = useChat({
-        transport: new DynamicChatTransport(),
+        transport: chatTransport,
         async onToolCall({ toolCall }) {
             if (DEBUG) {
                 console.log(

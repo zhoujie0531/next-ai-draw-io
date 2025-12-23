@@ -38,6 +38,7 @@ const PROVIDER_LOGO_MAP: Record<string, string> = {
     deepseek: "deepseek",
     siliconflow: "siliconflow",
     gateway: "vercel",
+    edgeone: "tencent-cloud",
 }
 
 // Group models by providerLabel (handles duplicate providers)

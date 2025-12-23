@@ -239,7 +239,7 @@ npm run dev
 
 EdgeOne Pages offers **free [Edge AI](https://pages.edgeone.ai/document/edge-ai) quota** (DeepSeek-V3: 50 req/day, DeepSeek-R1: 20 req/day). No API keys required.
 
-**Setup:** After deployment, go to Settings → Provider → select "EdgeOne Pages"
+**Setup:** After deployment, click the gear icon → AI Model Configuration → Add "EdgeOne Pages" provider and select a model
 
 ### Deploy to Vercel
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new) from the creators of Next.js.

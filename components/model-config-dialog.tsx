@@ -75,6 +75,7 @@ const PROVIDER_LOGO_MAP: Record<string, string> = {
     deepseek: "deepseek",
     siliconflow: "siliconflow",
     gateway: "vercel",
+    edgeone: "tencent-cloud",
 }
 
 // Provider logo component
@@ -287,6 +288,7 @@ export function ModelConfigDialog({
 
         // Check credentials based on provider type
         const isBedrock = selectedProvider.provider === "bedrock"
+        const isEdgeOne = selectedProvider.provider === "edgeone"
         if (isBedrock) {
             if (
                 !selectedProvider.awsAccessKeyId ||
@@ -295,7 +297,7 @@ export function ModelConfigDialog({
             ) {
                 return
             }
-        } else if (!selectedProvider.apiKey) {
+        } else if (!isEdgeOne && !selectedProvider.apiKey) {
             return
         }
 
@@ -605,9 +607,70 @@ export function ModelConfigDialog({
                                                     />
                                                 </div>
 
-                                                {/* Credentials - different for Bedrock vs other providers */}
+                                                {/* Credentials - different for Bedrock vs EdgeOne vs other providers */}
                                                 {selectedProvider.provider ===
-                                                "bedrock" ? (
+                                                "edgeone" ? (
+                                                    <div className="space-y-3">
+                                                        {/* EdgeOne Pages - No API Key needed */}
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Free Edge AI quota
+                                                            when deployed to
+                                                            EdgeOne Pages. No
+                                                            API key required.
+                                                            (DeepSeek-V3:
+                                                            50/day, R1: 20/day)
+                                                        </p>
+                                                        {/* Test Button */}
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                variant={
+                                                                    validationStatus ===
+                                                                    "success"
+                                                                        ? "outline"
+                                                                        : "default"
+                                                                }
+                                                                size="sm"
+                                                                onClick={
+                                                                    handleValidate
+                                                                }
+                                                                disabled={
+                                                                    validationStatus ===
+                                                                    "validating"
+                                                                }
+                                                                className={cn(
+                                                                    "h-9 px-4",
+                                                                    validationStatus ===
+                                                                        "success" &&
+                                                                        "text-emerald-600 border-emerald-200 dark:border-emerald-800",
+                                                                )}
+                                                            >
+                                                                {validationStatus ===
+                                                                "validating" ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                                ) : validationStatus ===
+                                                                  "success" ? (
+                                                                    <>
+                                                                        <Check className="h-4 w-4 mr-1.5" />
+                                                                        Verified
+                                                                    </>
+                                                                ) : (
+                                                                    "Test"
+                                                                )}
+                                                            </Button>
+                                                            {validationStatus ===
+                                                                "error" &&
+                                                                validationError && (
+                                                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                                                        <X className="h-3 w-3" />
+                                                                        {
+                                                                            validationError
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                ) : selectedProvider.provider ===
+                                                  "bedrock" ? (
                                                     <>
                                                         {/* AWS Access Key ID */}
                                                         <div className="space-y-2">
@@ -992,83 +1055,98 @@ export function ModelConfigDialog({
                                                     <span>Models</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="relative">
-                                                        <Input
-                                                            placeholder="Custom model ID..."
-                                                            value={
-                                                                customModelInput
-                                                            }
-                                                            onChange={(e) => {
-                                                                setCustomModelInput(
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                                // Clear duplicate error when typing
-                                                                if (
-                                                                    duplicateError
-                                                                ) {
-                                                                    setDuplicateError(
-                                                                        "",
-                                                                    )
-                                                                }
-                                                            }}
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                        "Enter" &&
-                                                                    customModelInput.trim()
-                                                                ) {
-                                                                    const success =
-                                                                        handleAddModel(
-                                                                            customModelInput.trim(),
-                                                                        )
-                                                                    if (
-                                                                        success
-                                                                    ) {
-                                                                        setCustomModelInput(
-                                                                            "",
-                                                                        )
+                                                    {/* Custom model input - hidden for EdgeOne */}
+                                                    {selectedProvider.provider !==
+                                                        "edgeone" && (
+                                                        <>
+                                                            <div className="relative">
+                                                                <Input
+                                                                    placeholder="Custom model ID..."
+                                                                    value={
+                                                                        customModelInput
                                                                     }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) => {
+                                                                        setCustomModelInput(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                        // Clear duplicate error when typing
+                                                                        if (
+                                                                            duplicateError
+                                                                        ) {
+                                                                            setDuplicateError(
+                                                                                "",
+                                                                            )
+                                                                        }
+                                                                    }}
+                                                                    onKeyDown={(
+                                                                        e,
+                                                                    ) => {
+                                                                        if (
+                                                                            e.key ===
+                                                                                "Enter" &&
+                                                                            customModelInput.trim()
+                                                                        ) {
+                                                                            const success =
+                                                                                handleAddModel(
+                                                                                    customModelInput.trim(),
+                                                                                )
+                                                                            if (
+                                                                                success
+                                                                            ) {
+                                                                                setCustomModelInput(
+                                                                                    "",
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                    className={cn(
+                                                                        "h-8 w-48 font-mono text-xs",
+                                                                        duplicateError &&
+                                                                            "border-destructive focus-visible:ring-destructive",
+                                                                    )}
+                                                                />
+                                                                {/* Show duplicate error for custom model input */}
+                                                                {duplicateError && (
+                                                                    <p className="absolute top-full left-0 mt-1 text-[11px] text-destructive">
+                                                                        {
+                                                                            duplicateError
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8"
+                                                                onClick={() => {
+                                                                    if (
+                                                                        customModelInput.trim()
+                                                                    ) {
+                                                                        const success =
+                                                                            handleAddModel(
+                                                                                customModelInput.trim(),
+                                                                            )
+                                                                        if (
+                                                                            success
+                                                                        ) {
+                                                                            setCustomModelInput(
+                                                                                "",
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                disabled={
+                                                                    !customModelInput.trim()
                                                                 }
-                                                            }}
-                                                            className={cn(
-                                                                "h-8 w-48 font-mono text-xs",
-                                                                duplicateError &&
-                                                                    "border-destructive focus-visible:ring-destructive",
-                                                            )}
-                                                        />
-                                                        {/* Show duplicate error for custom model input */}
-                                                        {duplicateError && (
-                                                            <p className="absolute top-full left-0 mt-1 text-[11px] text-destructive">
-                                                                {duplicateError}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8"
-                                                        onClick={() => {
-                                                            if (
-                                                                customModelInput.trim()
-                                                            ) {
-                                                                const success =
-                                                                    handleAddModel(
-                                                                        customModelInput.trim(),
-                                                                    )
-                                                                if (success) {
-                                                                    setCustomModelInput(
-                                                                        "",
-                                                                    )
-                                                                }
-                                                            }
-                                                        }}
-                                                        disabled={
-                                                            !customModelInput.trim()
-                                                        }
-                                                    >
-                                                        <Plus className="h-3.5 w-3.5" />
-                                                    </Button>
+                                                            >
+                                                                <Plus className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                     <Select
                                                         onValueChange={(
                                                             value,

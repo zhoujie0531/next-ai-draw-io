@@ -28,8 +28,7 @@
         "azure": "Azure OpenAI",
         "openrouter": "OpenRouter",
         "deepseek": "DeepSeek",
-        "siliconflow": "SiliconFlow",
-        "edgeone": "EdgeOne Pages"
+        "siliconflow": "SiliconFlow"
     },
     "chat": {
         "placeholder": "描述您的图表或上传文件...",

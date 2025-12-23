@@ -10,6 +10,7 @@ export type ProviderName =
     | "deepseek"
     | "siliconflow"
     | "gateway"
+    | "edgeone"
 
 // Individual model configuration
 export interface ModelConfig {
@@ -78,6 +79,7 @@ export const PROVIDER_INFO: Record<
         defaultBaseUrl: "https://api.siliconflow.com/v1",
     },
     gateway: { label: "AI Gateway" },
+    edgeone: { label: "EdgeOne Pages" },
 }
 
 // Suggested models per provider for quick add
@@ -201,6 +203,10 @@ export const SUGGESTED_MODELS: Record<ProviderName, string[]> = {
         "anthropic/claude-sonnet-4-5",
         "anthropic/claude-3-5-sonnet",
         "google/gemini-2.0-flash",
+    ],
+    edgeone: [
+        "@tx/deepseek-ai/deepseek-v3-0324",
+        "@tx/deepseek-ai/deepseek-r1-0528",
     ],
 }
 

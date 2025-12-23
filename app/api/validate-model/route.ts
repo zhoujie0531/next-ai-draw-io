@@ -121,7 +121,7 @@ export async function POST(req: Request) {
                     { status: 400 },
                 )
             }
-        } else if (provider !== "ollama" && !apiKey) {
+        } else if (provider !== "ollama" && provider !== "edgeone" && !apiKey) {
             return NextResponse.json(
                 { valid: false, error: "API key is required" },
                 { status: 400 },
@@ -223,6 +223,36 @@ export async function POST(req: Request) {
                 })
                 model = gw(modelId)
                 break
+            }
+
+            case "edgeone": {
+                // EdgeOne uses Edge AI - validate by making a test request to the edge function
+                // This will only work when deployed to EdgeOne Pages
+                const edgeAiUrl = new URL("/api/edgeai/chat", req.url)
+                const startTime = Date.now()
+                const testResponse = await fetch(edgeAiUrl.toString(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [{ role: "user", content: "Say OK" }],
+                        model: modelId,
+                    }),
+                })
+                const responseTime = Date.now() - startTime
+
+                if (testResponse.ok) {
+                    return NextResponse.json({ valid: true, responseTime })
+                }
+
+                const errorData = await testResponse.json().catch(() => ({}))
+                return NextResponse.json(
+                    {
+                        valid: false,
+                        error:
+                            errorData.error || "EdgeOne Edge AI not available",
+                    },
+                    { status: 200 },
+                )
             }
 
             default:
