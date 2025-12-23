@@ -158,14 +158,6 @@ export default function ChatPanel({
     // Model configuration hook
     const modelConfig = useModelConfig()
 
-    // Dynamic transport based on current provider
-    const chatTransport = useMemo(() => {
-        const api =
-            modelConfig.selectedModel?.provider === "edgeone"
-                ? getApiEndpoint("/api/edgeai/chat")
-                : getApiEndpoint("/api/chat")
-        return new DefaultChatTransport({ api })
-    }, [modelConfig.selectedModel?.provider])
     const [input, setInput] = useState("")
     const [dailyRequestLimit, setDailyRequestLimit] = useState(0)
     const [dailyTokenLimit, setDailyTokenLimit] = useState(0)
@@ -245,6 +237,36 @@ export default function ChatPanel({
         typeof setTimeout
     > | null>(null)
     const LOCAL_STORAGE_DEBOUNCE_MS = 1000 // Save at most once per second
+
+    // Dynamic transport that determines API endpoint at request time based on current provider
+    const chatTransport = useMemo(() => {
+        // Create a transport that dynamically selects API based on current config
+        const getApi = () => {
+            const config = getSelectedAIConfig()
+            return config.aiProvider === "edgeone"
+                ? getApiEndpoint("/api/edgeai/chat")
+                : getApiEndpoint("/api/chat")
+        }
+
+        // Use a Proxy to intercept the fetch call and use dynamic API
+        const baseTransport = new DefaultChatTransport({
+            api: getApiEndpoint("/api/chat"),
+        })
+
+        return {
+            ...baseTransport,
+            sendMessages: async (options: any) => {
+                const api = getApi()
+                const dynamicTransport = new DefaultChatTransport({ api })
+                return dynamicTransport.sendMessages(options)
+            },
+            reconnectToStream: async (options: any) => {
+                const api = getApi()
+                const dynamicTransport = new DefaultChatTransport({ api })
+                return dynamicTransport.reconnectToStream(options)
+            },
+        }
+    }, [])
 
     const {
         messages,
