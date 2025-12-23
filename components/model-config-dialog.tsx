@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select"
 import { useDictionary } from "@/hooks/use-dictionary"
 import type { UseModelConfigReturn } from "@/hooks/use-model-config"
+import { formatMessage } from "@/lib/i18n/utils"
 import type { ProviderConfig, ProviderName } from "@/lib/types/model-config"
 import { PROVIDER_INFO, SUGGESTED_MODELS } from "@/lib/types/model-config"
 import { cn } from "@/lib/utils"
@@ -108,10 +109,12 @@ function ValidationButton({
     status,
     onClick,
     disabled,
+    dict,
 }: {
     status: ValidationStatus
     onClick: () => void
     disabled: boolean
+    dict: ReturnType<typeof useDictionary>
 }) {
     return (
         <Button
@@ -130,10 +133,10 @@ function ValidationButton({
             ) : status === "success" ? (
                 <>
                     <Check className="h-4 w-4 mr-1.5" />
-                    Verified
+                    {dict.modelConfig.verified}
                 </>
             ) : (
-                "Test"
+                dict.modelConfig.test
             )}
         </Button>
     )
@@ -408,7 +411,7 @@ export function ModelConfigDialog({
                     <div className="w-56 flex-shrink-0 flex flex-col border-r bg-muted/20">
                         <div className="px-4 py-3 border-b">
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                Providers
+                                {dict.modelConfig.providers}
                             </span>
                         </div>
 
@@ -420,7 +423,7 @@ export function ModelConfigDialog({
                                             <Plus className="h-5 w-5 text-muted-foreground" />
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Add a provider to get started
+                                            {dict.modelConfig.addProviderHint}
                                         </p>
                                     </div>
                                 ) : (
@@ -486,7 +489,11 @@ export function ModelConfigDialog({
                             >
                                 <SelectTrigger className="h-9 bg-background hover:bg-accent">
                                     <Plus className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <SelectValue placeholder="Add Provider" />
+                                    <SelectValue
+                                        placeholder={
+                                            dict.modelConfig.addProvider
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {availableProviders.map((p) => (
@@ -554,15 +561,27 @@ export function ModelConfigDialog({
                                                 <p className="text-xs text-muted-foreground">
                                                     {selectedProvider.models
                                                         .length === 0
-                                                        ? "No models configured"
-                                                        : `${selectedProvider.models.length} model${selectedProvider.models.length > 1 ? "s" : ""} configured`}
+                                                        ? dict.modelConfig
+                                                              .noModelsConfigured
+                                                        : formatMessage(
+                                                              dict.modelConfig
+                                                                  .modelsConfiguredCount,
+                                                              {
+                                                                  count: selectedProvider
+                                                                      .models
+                                                                      .length,
+                                                              },
+                                                          )}
                                                 </p>
                                             </div>
                                             {selectedProvider.validated && (
                                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                                                     <Check className="h-3.5 w-3.5" />
                                                     <span className="text-xs font-medium">
-                                                        Verified
+                                                        {
+                                                            dict.modelConfig
+                                                                .verified
+                                                        }
                                                     </span>
                                                 </div>
                                             )}
@@ -572,7 +591,12 @@ export function ModelConfigDialog({
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                                                 <Settings2 className="h-4 w-4" />
-                                                <span>Configuration</span>
+                                                <span>
+                                                    {
+                                                        dict.modelConfig
+                                                            .configuration
+                                                    }
+                                                </span>
                                             </div>
 
                                             <div className="rounded-xl border bg-card p-4 space-y-4">
@@ -583,7 +607,10 @@ export function ModelConfigDialog({
                                                         className="text-xs font-medium flex items-center gap-1.5"
                                                     >
                                                         <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                                                        Display Name
+                                                        {
+                                                            dict.modelConfig
+                                                                .displayName
+                                                        }
                                                     </Label>
                                                     <Input
                                                         id="provider-name"
@@ -679,8 +706,11 @@ export function ModelConfigDialog({
                                                                 className="text-xs font-medium flex items-center gap-1.5"
                                                             >
                                                                 <Key className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                AWS Access Key
-                                                                ID
+                                                                {
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .awsAccessKeyId
+                                                                }
                                                             </Label>
                                                             <Input
                                                                 id="aws-access-key-id"
@@ -712,8 +742,11 @@ export function ModelConfigDialog({
                                                                 className="text-xs font-medium flex items-center gap-1.5"
                                                             >
                                                                 <Key className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                AWS Secret
-                                                                Access Key
+                                                                {
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .awsSecretAccessKey
+                                                                }
                                                             </Label>
                                                             <div className="relative">
                                                                 <Input
@@ -737,7 +770,11 @@ export function ModelConfigDialog({
                                                                                 .value,
                                                                         )
                                                                     }
-                                                                    placeholder="Enter your secret access key"
+                                                                    placeholder={
+                                                                        dict
+                                                                            .modelConfig
+                                                                            .enterSecretKey
+                                                                    }
                                                                     className="h-9 pr-10 font-mono text-xs"
                                                                 />
                                                                 <button
@@ -770,7 +807,11 @@ export function ModelConfigDialog({
                                                                 className="text-xs font-medium flex items-center gap-1.5"
                                                             >
                                                                 <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                AWS Region
+                                                                {
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .awsRegion
+                                                                }
                                                             </Label>
                                                             <Select
                                                                 value={
@@ -787,7 +828,13 @@ export function ModelConfigDialog({
                                                                 }
                                                             >
                                                                 <SelectTrigger className="h-9 font-mono text-xs hover:bg-accent">
-                                                                    <SelectValue placeholder="Select region" />
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            dict
+                                                                                .modelConfig
+                                                                                .selectRegion
+                                                                        }
+                                                                    />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="max-h-64">
                                                                     <SelectItem value="us-east-1">
@@ -882,10 +929,16 @@ export function ModelConfigDialog({
                                                                   "success" ? (
                                                                     <>
                                                                         <Check className="h-4 w-4 mr-1.5" />
-                                                                        Verified
+                                                                        {
+                                                                            dict
+                                                                                .modelConfig
+                                                                                .verified
+                                                                        }
                                                                     </>
                                                                 ) : (
-                                                                    "Test"
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .test
                                                                 )}
                                                             </Button>
                                                             {validationStatus ===
@@ -909,7 +962,11 @@ export function ModelConfigDialog({
                                                                 className="text-xs font-medium flex items-center gap-1.5"
                                                             >
                                                                 <Key className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                API Key
+                                                                {
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .apiKey
+                                                                }
                                                             </Label>
                                                             <div className="flex gap-2">
                                                                 <div className="relative flex-1">
@@ -933,7 +990,11 @@ export function ModelConfigDialog({
                                                                                     .value,
                                                                             )
                                                                         }
-                                                                        placeholder="Enter your API key"
+                                                                        placeholder={
+                                                                            dict
+                                                                                .modelConfig
+                                                                                .enterApiKey
+                                                                        }
                                                                         className="h-9 pr-10 font-mono text-xs"
                                                                     />
                                                                     <button
@@ -987,10 +1048,16 @@ export function ModelConfigDialog({
                                                                       "success" ? (
                                                                         <>
                                                                             <Check className="h-4 w-4 mr-1.5" />
-                                                                            Verified
+                                                                            {
+                                                                                dict
+                                                                                    .modelConfig
+                                                                                    .verified
+                                                                            }
                                                                         </>
                                                                     ) : (
-                                                                        "Test"
+                                                                        dict
+                                                                            .modelConfig
+                                                                            .test
                                                                     )}
                                                                 </Button>
                                                             </div>
@@ -1013,9 +1080,17 @@ export function ModelConfigDialog({
                                                                 className="text-xs font-medium flex items-center gap-1.5"
                                                             >
                                                                 <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                                                Base URL
+                                                                {
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .baseUrl
+                                                                }
                                                                 <span className="text-muted-foreground font-normal">
-                                                                    (optional)
+                                                                    {
+                                                                        dict
+                                                                            .modelConfig
+                                                                            .optional
+                                                                    }
                                                                 </span>
                                                             </Label>
                                                             <Input
@@ -1037,7 +1112,9 @@ export function ModelConfigDialog({
                                                                             .provider
                                                                     ]
                                                                         .defaultBaseUrl ||
-                                                                    "Custom endpoint URL"
+                                                                    dict
+                                                                        .modelConfig
+                                                                        .customEndpoint
                                                                 }
                                                                 className="h-9 font-mono text-xs"
                                                             />
@@ -1052,7 +1129,12 @@ export function ModelConfigDialog({
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                                                     <Sparkles className="h-4 w-4" />
-                                                    <span>Models</span>
+                                                    <span>
+                                                        {
+                                                            dict.modelConfig
+                                                                .models
+                                                        }
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     {/* Custom model input - hidden for EdgeOne */}
@@ -1061,7 +1143,11 @@ export function ModelConfigDialog({
                                                         <>
                                                             <div className="relative">
                                                                 <Input
-                                                                    placeholder="Custom model ID..."
+                                                                    placeholder={
+                                                                        dict
+                                                                            .modelConfig
+                                                                            .customModelId
+                                                                    }
                                                                     value={
                                                                         customModelInput
                                                                     }
@@ -1166,8 +1252,12 @@ export function ModelConfigDialog({
                                                             <span className="text-xs">
                                                                 {availableSuggestions.length ===
                                                                 0
-                                                                    ? "All added"
-                                                                    : "Suggested"}
+                                                                    ? dict
+                                                                          .modelConfig
+                                                                          .allAdded
+                                                                    : dict
+                                                                          .modelConfig
+                                                                          .suggested}
                                                             </span>
                                                         </SelectTrigger>
                                                         <SelectContent className="max-h-72">
@@ -1202,7 +1292,10 @@ export function ModelConfigDialog({
                                                             <Sparkles className="h-5 w-5 text-muted-foreground" />
                                                         </div>
                                                         <p className="text-sm text-muted-foreground">
-                                                            No models configured
+                                                            {
+                                                                dict.modelConfig
+                                                                    .noModelsConfigured
+                                                            }
                                                         </p>
                                                     </div>
                                                 ) : (
@@ -1369,7 +1462,9 @@ export function ModelConfigDialog({
                                                                                     !newModelId
                                                                                 ) {
                                                                                     showError(
-                                                                                        "Model ID cannot be empty",
+                                                                                        dict
+                                                                                            .modelConfig
+                                                                                            .modelIdEmpty,
                                                                                     )
                                                                                     return
                                                                                 }
@@ -1397,7 +1492,9 @@ export function ModelConfigDialog({
                                                                                     )
                                                                                 ) {
                                                                                     showError(
-                                                                                        "This model ID already exists",
+                                                                                        dict
+                                                                                            .modelConfig
+                                                                                            .modelIdExists,
                                                                                     )
                                                                                     return
                                                                                 }
@@ -1461,7 +1558,10 @@ export function ModelConfigDialog({
                                                 className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" />
-                                                Delete Provider
+                                                {
+                                                    dict.modelConfig
+                                                        .deleteProvider
+                                                }
                                             </Button>
                                         </div>
                                     </div>
@@ -1473,11 +1573,10 @@ export function ModelConfigDialog({
                                     <Server className="h-8 w-8 text-primary/60" />
                                 </div>
                                 <h3 className="font-semibold mb-1">
-                                    Configure AI Providers
+                                    {dict.modelConfig.configureProviders}
                                 </h3>
                                 <p className="text-sm text-muted-foreground max-w-xs">
-                                    Select a provider from the list or add a new
-                                    one to configure API keys and models
+                                    {dict.modelConfig.selectProviderHint}
                                 </p>
                             </div>
                         )}
@@ -1488,7 +1587,7 @@ export function ModelConfigDialog({
                 <div className="px-6 py-3 border-t bg-muted/20">
                     <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5">
                         <Key className="h-3 w-3" />
-                        API keys are stored locally in your browser
+                        {dict.modelConfig.apiKeyStored}
                     </p>
                 </div>
             </DialogContent>
@@ -1507,19 +1606,16 @@ export function ModelConfigDialog({
                             <AlertCircle className="h-6 w-6 text-destructive" />
                         </div>
                         <AlertDialogTitle className="text-center">
-                            Delete Provider
+                            {dict.modelConfig.deleteProvider}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-center">
-                            Are you sure you want to delete{" "}
-                            <span className="font-medium text-foreground">
-                                {selectedProvider
+                            {formatMessage(dict.modelConfig.deleteConfirmDesc, {
+                                name: selectedProvider
                                     ? selectedProvider.name ||
                                       PROVIDER_INFO[selectedProvider.provider]
                                           .label
-                                    : "this provider"}
-                            </span>
-                            ? This will remove all configured models and cannot
-                            be undone.
+                                    : "this provider",
+                            })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     {selectedProvider &&
@@ -1529,11 +1625,16 @@ export function ModelConfigDialog({
                                     htmlFor="delete-confirm"
                                     className="text-sm text-muted-foreground"
                                 >
-                                    Type &quot;
-                                    {selectedProvider.name ||
-                                        PROVIDER_INFO[selectedProvider.provider]
-                                            .label}
-                                    &quot; to confirm
+                                    {formatMessage(
+                                        dict.modelConfig.typeToConfirm,
+                                        {
+                                            name:
+                                                selectedProvider.name ||
+                                                PROVIDER_INFO[
+                                                    selectedProvider.provider
+                                                ].label,
+                                        },
+                                    )}
                                 </Label>
                                 <Input
                                     id="delete-confirm"
@@ -1541,13 +1642,17 @@ export function ModelConfigDialog({
                                     onChange={(e) =>
                                         setDeleteConfirmText(e.target.value)
                                     }
-                                    placeholder="Type provider name..."
+                                    placeholder={
+                                        dict.modelConfig.typeProviderName
+                                    }
                                     className="h-9"
                                 />
                             </div>
                         )}
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>
+                            {dict.modelConfig.cancel}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteProvider}
                             disabled={
@@ -1560,7 +1665,7 @@ export function ModelConfigDialog({
                             }
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                         >
-                            Delete
+                            {dict.modelConfig.delete}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
