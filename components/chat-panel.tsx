@@ -160,13 +160,12 @@ export default function ChatPanel({
 
     // Dynamic transport based on current provider
     const chatTransport = useMemo(() => {
-        const config = getSelectedAIConfig()
         const api =
-            config.aiProvider === "edgeone"
+            modelConfig.selectedModel?.provider === "edgeone"
                 ? getApiEndpoint("/api/edgeai/chat")
                 : getApiEndpoint("/api/chat")
         return new DefaultChatTransport({ api })
-    }, [modelConfig.selectedModelId])
+    }, [modelConfig.selectedModel?.provider])
     const [input, setInput] = useState("")
     const [dailyRequestLimit, setDailyRequestLimit] = useState(0)
     const [dailyTokenLimit, setDailyTokenLimit] = useState(0)
