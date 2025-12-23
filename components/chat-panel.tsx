@@ -18,18 +18,25 @@ import { FaGithub } from "react-icons/fa"
 import { Toaster, toast } from "sonner"
 import { ButtonWithTooltip } from "@/components/button-with-tooltip"
 import { ChatInput } from "@/components/chat-input"
+import { ModelConfigDialog } from "@/components/model-config-dialog"
 import { ResetWarningModal } from "@/components/reset-warning-modal"
 import { SettingsDialog } from "@/components/settings-dialog"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useDiagram } from "@/contexts/diagram-context"
 import { useDictionary } from "@/hooks/use-dictionary"
+import { getSelectedAIConfig, useModelConfig } from "@/hooks/use-model-config"
 import { getAIConfig } from "@/lib/ai-config"
+import { getApiEndpoint } from "@/lib/base-path"
 import { findCachedResponse } from "@/lib/cached-responses"
 import { isPdfFile, isTextFile } from "@/lib/pdf-utils"
 import { type FileData, useFileProcessor } from "@/lib/use-file-processor"
 import { useQuotaManager } from "@/lib/use-quota-manager"
 import { formatXML, isMxCellXmlComplete, wrapWithMxFile } from "@/lib/utils"
 import { ChatMessageDisplay } from "./chat-message-display"
-import LanguageToggle from "./language-toggle"
 
 // Custom transport that dynamically selects API based on provider
 class DynamicChatTransport extends DefaultChatTransport<UIMessage> {
@@ -167,7 +174,10 @@ export default function ChatPanel({
 
     const [showHistory, setShowHistory] = useState(false)
     const [showSettingsDialog, setShowSettingsDialog] = useState(false)
-    const [, setAccessCodeRequired] = useState(false)
+    const [showModelConfigDialog, setShowModelConfigDialog] = useState(false)
+
+    // Model configuration hook
+    const modelConfig = useModelConfig()
     const [input, setInput] = useState("")
     const [dailyRequestLimit, setDailyRequestLimit] = useState(0)
     const [dailyTokenLimit, setDailyTokenLimit] = useState(0)
@@ -185,15 +195,14 @@ export default function ChatPanel({
 
     // Check config on mount
     useEffect(() => {
-        fetch("/api/config")
+        fetch(getApiEndpoint("/api/config"))
             .then((res) => res.json())
             .then((data) => {
-                setAccessCodeRequired(data.accessCodeRequired)
                 setDailyRequestLimit(data.dailyRequestLimit || 0)
                 setDailyTokenLimit(data.dailyTokenLimit || 0)
                 setTpmLimit(data.tpmLimit || 0)
             })
-            .catch(() => setAccessCodeRequired(false))
+            .catch(() => {})
     }, [])
 
     // Quota management using extracted hook
@@ -628,8 +637,7 @@ Continue from EXACTLY where you stopped.`,
             })
 
             if (error.message.includes("Invalid or missing access code")) {
-                // Show settings button and open dialog to help user fix it
-                setAccessCodeRequired(true)
+                // Show settings dialog to help user fix it
                 setShowSettingsDialog(true)
             }
         },
@@ -1038,7 +1046,7 @@ Continue from EXACTLY where you stopped.`,
         autoRetryCountRef.current = 0
         partialXmlRef.current = ""
 
-        const config = getAIConfig()
+        const config = getSelectedAIConfig()
 
         sendMessage(
             { parts },
@@ -1055,6 +1063,20 @@ Continue from EXACTLY where you stopped.`,
                             "x-ai-api-key": config.aiApiKey,
                         }),
                         ...(config.aiModel && { "x-ai-model": config.aiModel }),
+                        // AWS Bedrock credentials
+                        ...(config.awsAccessKeyId && {
+                            "x-aws-access-key-id": config.awsAccessKeyId,
+                        }),
+                        ...(config.awsSecretAccessKey && {
+                            "x-aws-secret-access-key":
+                                config.awsSecretAccessKey,
+                        }),
+                        ...(config.awsRegion && {
+                            "x-aws-region": config.awsRegion,
+                        }),
+                        ...(config.awsSessionToken && {
+                            "x-aws-session-token": config.awsSessionToken,
+                        }),
                     }),
                     ...(minimalStyle && {
                         "x-minimal-style": "true",
@@ -1267,32 +1289,18 @@ Continue from EXACTLY where you stopped.`,
                                 Next AI Drawio
                             </h1>
                         </div>
-                        {!isMobile && (
-                            <Link
-                                href="/about"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-2"
-                            >
-                                About
-                            </Link>
-                        )}
-                        {!isMobile && (
-                            <Link
-                                href="/about"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <ButtonWithTooltip
-                                    tooltipContent="Due to high usage, I have changed the model to minimax-m2 and added some usage limits. See About page for details."
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-amber-500 hover:text-amber-600"
+                        {!isMobile &&
+                            process.env.NEXT_PUBLIC_SHOW_ABOUT_AND_NOTICE ===
+                                "true" && (
+                                <Link
+                                    href="/about"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-muted-foreground hover:text-foreground transition-colors ml-2"
                                 >
-                                    <AlertTriangle className="h-4 w-4" />
-                                </ButtonWithTooltip>
-                            </Link>
-                        )}
+                                    About
+                                </Link>
+                            )}
                     </div>
                     <div className="flex items-center gap-1 justify-end overflow-visible">
                         <ButtonWithTooltip
@@ -1307,16 +1315,23 @@ Continue from EXACTLY where you stopped.`,
                             />
                         </ButtonWithTooltip>
                         <div className="w-px h-5 bg-border mx-1" />
-                        <a
-                            href="https://github.com/DayuanJiang/next-ai-draw-io"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                        >
-                            <FaGithub
-                                className={`${isMobile ? "w-4 h-4" : "w-5 h-5"}`}
-                            />
-                        </a>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <a
+                                    href="https://github.com/DayuanJiang/next-ai-draw-io"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                                >
+                                    <FaGithub
+                                        className={`${isMobile ? "w-4 h-4" : "w-5 h-5"}`}
+                                    />
+                                </a>
+                            </TooltipTrigger>
+                            <TooltipContent>{dict.nav.github}</TooltipContent>
+                        </Tooltip>
+
                         <ButtonWithTooltip
                             tooltipContent={dict.nav.settings}
                             variant="ghost"
@@ -1329,7 +1344,6 @@ Continue from EXACTLY where you stopped.`,
                             />
                         </ButtonWithTooltip>
                         <div className="hidden sm:flex items-center gap-2">
-                            <LanguageToggle />
                             {!isMobile && (
                                 <ButtonWithTooltip
                                     tooltipContent={dict.nav.hidePanel}
@@ -1380,6 +1394,10 @@ Continue from EXACTLY where you stopped.`,
                     error={error}
                     minimalStyle={minimalStyle}
                     onMinimalStyleChange={setMinimalStyle}
+                    models={modelConfig.models}
+                    selectedModelId={modelConfig.selectedModelId}
+                    onModelSelect={modelConfig.setSelectedModelId}
+                    onConfigureModels={() => setShowModelConfigDialog(true)}
                 />
             </footer>
 
@@ -1391,6 +1409,12 @@ Continue from EXACTLY where you stopped.`,
                 onToggleDrawioUi={onToggleDrawioUi}
                 darkMode={darkMode}
                 onToggleDarkMode={onToggleDarkMode}
+            />
+
+            <ModelConfigDialog
+                open={showModelConfigDialog}
+                onOpenChange={setShowModelConfigDialog}
+                modelConfig={modelConfig}
             />
 
             <ResetWarningModal
