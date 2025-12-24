@@ -242,32 +242,18 @@ export default function ChatPanel({
 
     // Dynamic transport that determines API endpoint at request time based on current provider
     const chatTransport = useMemo(() => {
-        // Create a transport that dynamically selects API based on current config
-        const getApi = () => {
-            const config = getSelectedAIConfig()
-            return config.aiProvider === "edgeone"
-                ? getApiEndpoint("/api/edgeai/chat")
-                : getApiEndpoint("/api/chat")
-        }
-
-        // Use a Proxy to intercept the fetch call and use dynamic API
-        const baseTransport = new DefaultChatTransport({
+        // Dynamic transport that determines API endpoint at request time based on current provider
+        return new DefaultChatTransport({
             api: getApiEndpoint("/api/chat"),
+            fetch: async (_input, init) => {
+                const config = getSelectedAIConfig()
+                const api =
+                    config.aiProvider === "edgeone"
+                        ? getApiEndpoint("/api/edgeai/chat")
+                        : getApiEndpoint("/api/chat")
+                return fetch(api, init)
+            },
         })
-
-        return {
-            ...baseTransport,
-            sendMessages: async (options: any) => {
-                const api = getApi()
-                const dynamicTransport = new DefaultChatTransport({ api })
-                return dynamicTransport.sendMessages(options)
-            },
-            reconnectToStream: async (options: any) => {
-                const api = getApi()
-                const dynamicTransport = new DefaultChatTransport({ api })
-                return dynamicTransport.reconnectToStream(options)
-            },
-        }
     }, [])
 
     const {
