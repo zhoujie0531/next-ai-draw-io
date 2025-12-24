@@ -88,7 +88,7 @@ export async function onRequestPost({
         const modelId =
             request.headers.get("X-AI-Model") ||
             env.AI_MODEL ||
-            "@tx/deepseek-ai/deepseek-v3-0324"
+            "@tx/deepseek-ai/deepseek-v32"
 
         // Build system prompt (without XML context - that's added separately in convertToAIMessages)
         const systemPrompt = getEdgeAISystemPrompt(modelId)
