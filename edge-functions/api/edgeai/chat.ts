@@ -137,7 +137,7 @@ export async function onRequestPost({
             errorMessage.includes("limit") || errorMessage.includes("quota")
 
         const msg = isRateLimit
-            ? "Edge AI daily limit reached. DeepSeek-V3: 50/day, DeepSeek-R1: 20/day."
+            ? `LimitError: ${errorMessage}`
             : `Error: ${errorMessage}`
 
         const errorTextId = `error_${Date.now()}`
