@@ -36,6 +36,7 @@ import { type FileData, useFileProcessor } from "@/lib/use-file-processor"
 import { useQuotaManager } from "@/lib/use-quota-manager"
 import { formatXML, isMxCellXmlComplete, wrapWithMxFile } from "@/lib/utils"
 import { ChatMessageDisplay } from "./chat-message-display"
+import { DevXmlSimulator } from "./dev-xml-simulator"
 
 // localStorage keys for persistence
 const STORAGE_MESSAGES_KEY = "next-ai-draw-io-messages"
@@ -76,6 +77,7 @@ interface ChatPanelProps {
 const TOOL_ERROR_STATE = "output-error" as const
 const DEBUG = process.env.NODE_ENV === "development"
 const MAX_AUTO_RETRY_COUNT = 1
+
 const MAX_CONTINUATION_RETRY_COUNT = 2 // Limit for truncation continuation retries
 
 /**
@@ -586,12 +588,32 @@ Continue from EXACTLY where you stopped.`,
         },
         onError: (error) => {
             // Handle server-side quota limit (429 response)
+            // AI SDK puts the full response body in error.message for non-OK responses
+            try {
+                const data = JSON.parse(error.message)
+                if (data.type === "request") {
+                    quotaManager.showQuotaLimitToast(data.used, data.limit)
+                    return
+                }
+                if (data.type === "token") {
+                    quotaManager.showTokenLimitToast(data.used, data.limit)
+                    return
+                }
+                if (data.type === "tpm") {
+                    quotaManager.showTPMLimitToast(data.limit)
+                    return
+                }
+            } catch {
+                // Not JSON, fall through to string matching for backwards compatibility
+            }
+
+            // Fallback to string matching
             if (error.message.includes("Daily request limit")) {
                 quotaManager.showQuotaLimitToast()
                 return
             }
             if (error.message.includes("Daily token limit")) {
-                quotaManager.showTokenLimitToast(dailyTokenLimit)
+                quotaManager.showTokenLimitToast()
                 return
             }
             if (
@@ -1345,6 +1367,14 @@ Continue from EXACTLY where you stopped.`,
                     onEditMessage={handleEditMessage}
                 />
             </main>
+
+            {/* Dev XML Streaming Simulator - only in development */}
+            {DEBUG && (
+                <DevXmlSimulator
+                    setMessages={setMessages}
+                    onDisplayChart={onDisplayChart}
+                />
+            )}
 
             {/* Input */}
             <footer
